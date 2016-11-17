@@ -1,0 +1,92 @@
+#!/usr/bin/perl -w
+
+package SeqToProfile;
+#use lib "/home/naren/build/punarvasu/lib" ;
+use strict;
+use warnings;
+use GenomeInfo;
+
+use Exporter qw(import);
+
+our @EXPORT_OK = qw( READFREQUENCIES );
+
+sub READFREQUENCIES {
+	my ($freqfile)=@_ ;
+	open OPEN,$freqfile or die ("Can not open $freqfile:$!\n");
+	my %freqhash;
+	while (<OPEN>){
+		chomp;
+		my @split=split(/\t/,$_);
+		$freqhash{$split[0]}=$split[1];
+	}
+	return (%freqhash);
+}
+
+sub SeqToPref {
+	my ($seq,$freqhash,$model)=@_; # model=6(hexamer),4(tetramer)
+	my $length=length($seq);
+	#print "seqlength-$seq\t$length\n";
+	my @prefbed=();
+	my @prefbed_oppo=();
+	for (my $i=0;$i<=$length-$model;$i++) {
+		my $nmer=substr($seq,$i,$model);
+		my $nmaervalue=$$freqhash{$nmer};
+		#print "$nmer-$nmaervalue\t";
+		push @prefbed,$nmer;
+	}
+	#print "\n";
+	return (\@prefbed);
+}
+
+sub BedToPref {
+	my ($summits,$bflank,$aflank,$model,$genome,$fasta,$freqhash)=@_;
+	#my $chromosomes=GenomeInfo::StdChromosomes($genome);
+	open BEDWRITE,">temp.bed" or die "Cant not open temp for writing:$!\n";
+	foreach my $chr (keys %$summits) {
+		foreach my $summit ( sort {$a<=>$b} keys $$summits{$chr}  ) {
+			my $orientation=$$summits{$chr}{$summit};
+			my ($startentended,$endextended);
+			if ($orientation eq "+") {
+				$startentended = $summit - $bflank -  $model / 2 ;
+				$endextended = $summit + $aflank + $model / 2  ;
+			} elsif ( $orientation eq "-" ) {
+				$endextended = $summit + $bflank + $model / 2 + 1  ;
+				$startentended = $summit - $aflank -  $model / 2 + 1 ;
+			}
+			my $summitheader = join "\t" , $chr , $startentended , $endextended , "." , "0", $orientation ; 
+			print BEDWRITE "$summitheader\n";
+			#print "$summitheader\n";
+		}
+	}
+	#close BEDWRITE ;
+	system ( "bedtools getfasta -fi $fasta -bed temp.bed -fo temp.seq -tab -s" );
+	open OPEN, "temp.seq";
+	my @matrixout=();
+	while (<OPEN>){
+		chomp;
+		my ($chr,$start,$end,$strand,$nuc)=/^(\S+):(\d+)-(\d+)\((\S)\)\t(\S+)$/;
+		my $prefbed = SeqToPref ($nuc, $freqhash, $model);
+		if ($strand eq "+") {
+                	$start = $start + $bflank +  $model / 2 ;
+                	$end = $start + 1 ;
+                } elsif ( $strand eq "-" ) {
+                        $end = $end - $bflank - $model / 2 - 1  ;
+                        $start = $end - 1 ;
+               	}
+
+		my $summitPrefs=join "\t" , $chr,$start,$end,".","0",$strand, @$prefbed ;
+		#print "$summitPrefs\n";
+		push @matrixout, $summitPrefs ;
+	}
+	system ("rm temp.bed temp.seq");
+	return (\@matrixout);
+}
+
+sub REVCOM {
+        my ($motif)=@_;
+        $motif =~ tr/ACGTNacgtn/TGCANTGCAN/ ;
+        $motif = reverse $motif ;
+        return ($motif);
+}
+
+1;

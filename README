@@ -1,0 +1,140 @@
+===============================================================================
+                                                                  
+           _             _____ _             _    
+          | |           / ____| |           | |   
+          | | ___   ___| (___ | |_ __ _  ___| | __
+          | |/ _ \ / __|\___ \| __/ _` |/ __| |/ /
+          | | (_) | (__ ____) | || (_| | (__|   < 
+          |_|\___/ \___|_____/ \__\__,_|\___|_|\_\
+             Meta analysis of genomic features                                        
+
+  locStack - Meta analysis of genomic features
+
+  Institute of Cancer Sciences
+  Epigenetics Unit
+  University of Glasgow
+  Garscube Estate
+  Glasgow G61 1QH
+
+  Report bugs to narekum@gmail.com or narendra.kumar@glasgow.ac.uk
+
+  Copyright 2016 Narendra Kumar
+
+  This program is free software; you can redistribute it and/or modify 
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; version 3 of the License.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of 
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, see <http://www.gnu.org/licenses/>
+  or write to the Free Software Foundation, Inc., 51 Franklin Street,
+  Fifth Floor, Boston, MA 02110-1301, USA.
+
+===============================================================================
+
+  Installation Instruction:
+
+  *Prerequisite
+
+  Perl should be installed on your system to run this sortware. It was tested
+  perl v5.14.2 but other version should also run it. 
+
+  Before you start, make sure that the following perl modules are available on 
+  your system.
+
+  1. CWD
+  2. File::Basename
+  3. Getopt::Long
+  4. Parallel::ForkManager
+
+  The first three modules are part of the standard perl distribution so you are 
+  likly to have them if you have perl on your system.
+
+  You can get Parallel::ForkManager module from CPAN at the following link,
+
+  http://search.cpan.org/~yanick/Parallel-ForkManager-1.18/lib/Parallel/ForkManager.pm
+
+  * Installation
+
+  To install locStack, just untar the package at your favorite place.
+
+  You can now start using by giving the full path of the perl script
+
+  perl <full path to parent directory>/locStack/bin/locStack.pl <options>
+
+  You may make an alias of executable as use it from anywhere without having 
+  to write full path
+
+  Add following line in your ~/bashrc file 
+
+  alias locStack="<full path to parent directory>/locStack/bin/locStack.pl"
+
+===============================================================================
+
+  User Manual:
+
+  Usage: : locStack.pl < -exp ALIGNEDREADS -summit REFERENCECOORDS -o NAME -g GENOME > [Options]
+
+  Options:
+
+  -h, --help              Show the help message and exit
+
+  -a, --aln               Bed file of aligned reads (REQUIRED)
+                          The bed file may contain the scores/weights in a 
+                          column. In that case the scores/weights may be 
+                          used in calculating distribution in combination 
+                          with flag -s,--score option. (see below)
+
+  -r, --ref               Bed file of reference coordinates. 
+                          The start position of the interval is considered
+                          as zero (starting point) while calculating 
+                          distribution.
+
+  -u, --up                Window downstream of the reference coordinates
+                          This is the "right" bound of the distribution. 
+                          (Default 1000)
+
+  -d, --down              Window downstream of the reference coordinates             
+                          This is the "left" bound of the distribution.
+                          (Default 1000)
+
+  -b, --bin               Size of each bin in bp
+                          (Default 100)
+
+  -c, --control           Bed file of control reads (optional)
+                          This option is only useful if -a,--aln is used
+                          with -s,--score option. When this option is 
+                          used the scores in this file are subtracted 
+                          from the scores at the corresponding positions
+                          in the file given with -a,--aln option 
+
+  -t, --thread            Number of processors to be used 
+                          (Default 2)
+
+  -s, --score             If the scores/weights in the file given with -a,
+                          --aln file are to be used. y=yes; n=no 
+                          (Default n)
+
+ -f, --field              Column/field in the bed file that contains the 
+                          scores/weights. With option is only valid is -s,
+                          --score option is used.
+                          (Default 5)
+
+ -n, --normalize          Total number of reads aligning in a segment will 
+                          be normalized with this number using the formula
+                          NR = A * N / T
+                          Where:
+                             NR= Normalized Reads
+                              A= Aligned Reads
+                              N= No given with -n option
+                              T= Total number of reads in --aln file
+                          (Default no normalization)
+
+
+===============================================================================
+                        ** END OF THE FILE **
+
